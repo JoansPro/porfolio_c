@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: portfolio-app
+    env: node
+    plan: free
+    buildCommand: npm install --prefix Backend
+    startCommand: node Backend/server.js
+    autoDeploy: true

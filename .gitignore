@@ -1,0 +1,7 @@
+Backend/node_modules/
+Backend/data/db.json
+Backend/.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+desktop.ini
