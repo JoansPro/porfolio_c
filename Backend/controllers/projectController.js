@@ -1,182 +1,25 @@
-const {
-  createProject,
-  listProjects,
-  findProjectById,
-  listProjectsByCategory,
-  updateProjectById,
-  deleteProjectById
-} = require('../data/store');
+const Project = require('../models/Project');
 
-exports.createProject = async (req, res) => {
-  try {
-    const {
-      id,
-      title,
-      description,
-      category,
-      technologies,
-      objectives,
-      results,
-      images,
-      github,
-      client,
-      duration,
-      team,
-      documents,
-      sourceCodes
-    } = req.body;
+// Existing functions...
 
-    if (!title || !description || !category) {
-      return res.status(400).json({
-        success: false,
-        message: 'Veuillez remplir tous les champs obligatoires'
-      });
+const getAllProjects = async (req, res) => {
+    try {
+        const projects = await Project.find(); // Fetch all projects from MongoDB
+        res.status(200).json(projects);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    const project = await createProject({
-      id,
-      title,
-      description,
-      category,
-      technologies,
-      objectives,
-      results,
-      images,
-      github,
-      client,
-      duration,
-      team,
-      documents,
-      sourceCodes
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Projet créé avec succès',
-      data: project
-    });
-  } catch (error) {
-    if (error.code === 'DUPLICATE_PROJECT_ID') {
-      return res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la création du projet',
-      error: error.message
-    });
-  }
 };
 
-exports.getAllProjects = async (req, res) => {
-  try {
-    const projects = await listProjects();
-    res.status(200).json({
-      success: true,
-      data: projects
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération des projets',
-      error: error.message
-    });
-  }
-};
-
-exports.getProjectById = async (req, res) => {
-  try {
-    const project = await findProjectById(req.params.id);
-    if (!project) {
-      return res.status(404).json({
-        success: false,
-        message: 'Projet non trouvé'
-      });
+const createProject = async (req, res) => {
+    const newProject = new Project(req.body);
+    try {
+        await newProject.save(); // Save new project to MongoDB
+        res.status(201).json(newProject);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    res.status(200).json({
-      success: true,
-      data: project
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération du projet',
-      error: error.message
-    });
-  }
 };
 
-exports.getProjectsByCategory = async (req, res) => {
-  try {
-    const projects = await listProjectsByCategory(req.params.category);
-    res.status(200).json({
-      success: true,
-      data: projects
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération des projets',
-      error: error.message
-    });
-  }
-};
-
-exports.updateProject = async (req, res) => {
-  try {
-    const project = await updateProjectById(req.params.id, req.body);
-
-    if (!project) {
-      return res.status(404).json({
-        success: false,
-        message: 'Projet non trouvé'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Projet mis à jour avec succès',
-      data: project
-    });
-  } catch (error) {
-    if (error.code === 'DUPLICATE_PROJECT_ID') {
-      return res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la mise à jour du projet',
-      error: error.message
-    });
-  }
-};
-
-exports.deleteProject = async (req, res) => {
-  try {
-    const project = await deleteProjectById(req.params.id);
-    if (!project) {
-      return res.status(404).json({
-        success: false,
-        message: 'Projet non trouvé'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Projet supprimé avec succès'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la suppression du projet',
-      error: error.message
-    });
-  }
-};
+// Export functions
+module.exports = { getAllProjects, createProject };
