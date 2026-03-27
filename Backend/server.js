@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const { initializeStore } = require('./data/store');
+const mongoose = require('mongoose');
+const connectDB = require('./db/connection');
 
 dotenv.config();
 
@@ -35,7 +36,7 @@ app.use((req, res) => {
       message: 'Route not found'
     });
   }
-
+  
   return res.sendFile(path.join(frontendRoot, 'index.html'));
 });
 
@@ -50,15 +51,16 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-initializeStore()
+// Connect to MongoDB and start server
+connectDB()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log('Local JSON storage ready');
+      console.log('MongoDB connected');
     });
   })
   .catch((error) => {
-    console.error('Failed to initialize local storage:', error);
+    console.error('Failed to connect to MongoDB:', error);
     process.exit(1);
   });
