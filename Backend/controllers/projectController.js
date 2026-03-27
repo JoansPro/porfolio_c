@@ -21,5 +21,20 @@ const createProject = async (req, res) => {
     }
 };
 
+const getProjectsByCategory = async (req, res) => {
+    try {
+        const category = req.params.category;
+
+        const projects = await Project.find({ category: category });
+
+        res.status(200).json(projects);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 // Export functions
-module.exports = { getAllProjects, createProject };
+module.exports = { 
+    getAllProjects, 
+    createProject,
+    getProjectsByCategory // ✅ AJOUT ICI
+};
