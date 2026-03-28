@@ -64,13 +64,3 @@ connectDB()
     console.error('Failed to connect to MongoDB:', error);
     process.exit(1);
   });
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-    console.log("✅ MongoDB connecté");
-    app.listen(PORT, () => {
-        console.log(`🚀 Serveur lancé sur le port ${PORT}`);
-    });
-})
-.catch((err) => {
-    console.error("❌ Erreur MongoDB :", err);
-});
