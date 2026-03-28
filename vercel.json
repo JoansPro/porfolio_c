@@ -2,13 +2,7 @@
   "version": 2,
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "index.html",
-        "adminporfollo.html",
-        "style.css",
-        "assets/**",
-        "Backend/uploads/**"
-      ]
+      "includeFiles": "{index.html,adminporfollo.html,style.css,assets/**,Backend/uploads/**}"
     }
   },
   "rewrites": [
