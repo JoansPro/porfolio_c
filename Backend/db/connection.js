@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+    console.log("URI:", process.env.MONGO_URI);
     try {
         await mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
@@ -10,6 +11,10 @@ const connectDB = async () => {
     } catch (error) {
         console.error('MongoDB connection error:', error);
         process.exit(1);
+    }
+    if (!process.env.MONGO_URI) {
+    console.error("❌ MONGO_URI manquant !");
+    process.exit(1);
     }
 };
 
