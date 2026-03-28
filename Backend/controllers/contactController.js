@@ -1,10 +1,4 @@
-const {
-  createContact,
-  listContacts,
-  findContactById,
-  markContactAsRead,
-  deleteContactById
-} = require('../data/store');
+const Contact = require('../models/Contact');
 
 exports.createContact = async (req, res) => {
   try {
@@ -17,23 +11,23 @@ exports.createContact = async (req, res) => {
       });
     }
 
-    const contact = await createContact({
+    const contact = await Contact.create({
       from_name,
       from_email,
-      phone,
+      phone: phone || '',
       subject,
       message
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: 'Message envoyé avec succès',
-      data: contact
+      message: 'Message envoye avec succes',
+      data: contact.toObject()
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Erreur lors de l\'envoi du message',
+      message: 'Erreur lors de l envoi du message',
       error: error.message
     });
   }
@@ -41,15 +35,15 @@ exports.createContact = async (req, res) => {
 
 exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await listContacts();
-    res.status(200).json({
+    const contacts = await Contact.find().sort({ createdAt: -1 }).lean();
+    return res.status(200).json({
       success: true,
       data: contacts
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Erreur lors de la récupération des messages',
+      message: 'Erreur lors de la recuperation des messages',
       error: error.message
     });
   }
@@ -57,22 +51,22 @@ exports.getAllContacts = async (req, res) => {
 
 exports.getContactById = async (req, res) => {
   try {
-    const contact = await findContactById(req.params.id);
+    const contact = await Contact.findById(req.params.id).lean();
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Message non trouvé'
+        message: 'Message non trouve'
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: contact
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Erreur lors de la récupération du message',
+      message: 'Erreur lors de la recuperation du message',
       error: error.message
     });
   }
@@ -80,23 +74,28 @@ exports.getContactById = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
   try {
-    const contact = await markContactAsRead(req.params.id);
+    const contact = await Contact.findByIdAndUpdate(
+      req.params.id,
+      { read: true },
+      { new: true }
+    ).lean();
+
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Message non trouvé'
+        message: 'Message non trouve'
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Message marqué comme lu',
+      message: 'Message marque comme lu',
       data: contact
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Erreur lors de la mise à jour du message',
+      message: 'Erreur lors de la mise a jour du message',
       error: error.message
     });
   }
@@ -104,20 +103,20 @@ exports.markAsRead = async (req, res) => {
 
 exports.deleteContact = async (req, res) => {
   try {
-    const contact = await deleteContactById(req.params.id);
+    const contact = await Contact.findByIdAndDelete(req.params.id).lean();
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Message non trouvé'
+        message: 'Message non trouve'
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Message supprimé avec succès'
+      message: 'Message supprime avec succes'
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erreur lors de la suppression du message',
       error: error.message

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ProjectSchema = new mongoose.Schema({
   id: {
-    type: Number,
+    type: String,
     required: true,
     unique: true
   },
@@ -16,7 +16,7 @@ const ProjectSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['automation', 'electronics', 'ai', 'programming'],
+    enum: ['automation', 'electronics', 'ai', 'arduino', 'plc', 'programming', 'other'],
     required: true
   },
   technologies: [{
@@ -50,7 +50,7 @@ const ProjectSchema = new mongoose.Schema({
     default: ''
   },
   documents: [{
-    id: Number,
+    id: String,
     title: String,
     description: String,
     type: String,
@@ -60,7 +60,7 @@ const ProjectSchema = new mongoose.Schema({
     downloadUrl: String
   }],
   sourceCodes: [{
-    id: Number,
+    id: String,
     title: String,
     description: String,
     language: String,

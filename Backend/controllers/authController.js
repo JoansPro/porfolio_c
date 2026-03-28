@@ -1,43 +1,145 @@
-const Admin = require('../models/Admin'); // Assume you have a model for Admin
 const jwt = require('jsonwebtoken');
+const Admin = require('../models/Admin');
 
-// Signup Admin Function
+function buildToken(admin) {
+  return jwt.sign(
+    { id: admin._id.toString(), username: admin.username },
+    process.env.JWT_SECRET || 'your_jwt_secret_here',
+    { expiresIn: '24h' }
+  );
+}
+
 exports.signupAdmin = async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const admin = new Admin({ username, password });
-        await admin.save();
-        res.status(201).json({ message: 'Admin created successfully' });
-    } catch (error) {
-        res.status(400).json({ message: 'Error creating admin', error });
+  try {
+    const { username, email, password, confirmPassword } = req.body;
+
+    if (!username || !email || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Veuillez remplir tous les champs'
+      });
     }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Les mots de passe ne correspondent pas'
+      });
+    }
+
+    const existingAdmin = await Admin.findOne({
+      $or: [{ username }, { email }]
+    }).lean();
+
+    if (existingAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet utilisateur ou email existe deja'
+      });
+    }
+
+    const admin = await Admin.create({ username, email, password });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Admin cree avec succes',
+      data: {
+        id: admin._id.toString(),
+        username: admin.username,
+        email: admin.email
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la creation de l admin',
+      error: error.message
+    });
+  }
 };
 
-// Login Admin Function
 exports.loginAdmin = async (req, res) => {
+  try {
     const { username, password } = req.body;
-    try {
-        const admin = await Admin.findOne({ username });
-        if (!admin || admin.password !== password) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
 
-        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json({ token });
-    } catch (error) {
-        res.status(500).json({ message: 'Error logging in', error });
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Veuillez remplir tous les champs'
+      });
     }
+
+    const admin = await Admin.findOne({ username });
+
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: 'Identifiants invalides'
+      });
+    }
+
+    const isPasswordCorrect = await admin.comparePassword(password);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: 'Identifiants invalides'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Connexion reussie',
+      token: buildToken(admin),
+      data: {
+        id: admin._id.toString(),
+        username: admin.username,
+        email: admin.email
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la connexion',
+      error: error.message
+    });
+  }
 };
 
-// Verify Token Function
-exports.verifyToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
-    if (!token) return res.status(403).send('A token is required for authentication');
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.admin = decoded;
-    } catch (err) {
-        return res.status(401).send('Invalid Token');
+exports.verifyToken = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token non fourni'
+      });
     }
-    return next();
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_here');
+    const admin = await Admin.findById(decoded.id).lean();
+
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: 'Utilisateur non trouve'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: admin._id.toString(),
+        username: admin.username,
+        email: admin.email
+      }
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token invalide ou expire',
+      error: error.message
+    });
+  }
 };
